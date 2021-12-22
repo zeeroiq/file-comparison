@@ -137,26 +137,31 @@ public class FileOperations {
                     log.info(String.format(">>>> Target folder doesn't have :  %s", relativePath.getFileName()));
                 } else {
                     if (!contentEquals(absolutePath.toString(), absolutePathInP2.toString())) {
-                        Files.move(absolutePath,
-                                Paths.get(absolutePath.getParent().getParent() + PROCESSED_MISMATCHED + absolutePath.getFileName()),
-                                StandardCopyOption.REPLACE_EXISTING);
-                        Files.move(absolutePathInP2,
-                                Paths.get(absolutePathInP2.getParent().getParent() + PROCESSED_MISMATCHED + absolutePathInP2.getFileName()),
-                                StandardCopyOption.REPLACE_EXISTING);
+                        moveProcessedFiles(absolutePath, PROCESSED_MISMATCHED, absolutePathInP2);
                         log.info(String.format(">>>> Contents are not equal for \n%s\n%s", absolutePath, paths_p2.get(relativePath)));
                     } else {
-                        Files.move(absolutePath,
-                                Paths.get(absolutePath.getParent().getParent() + PROCESSED_MATCHED + absolutePath.getFileName()),
-                                StandardCopyOption.REPLACE_EXISTING);
-                        Files.move(absolutePathInP2,
-                                Paths.get(absolutePathInP2.getParent().getParent() + PROCESSED_MATCHED + absolutePathInP2.getFileName()),
-                                StandardCopyOption.REPLACE_EXISTING);
+                        moveProcessedFiles(absolutePath, PROCESSED_MATCHED, absolutePathInP2);
                         log.info(String.format(">>>> Contents matched for \n%s\n%s", absolutePath, paths_p2.get(relativePath)));
                     }
                 }
             }
         }
+        log.info("\nAll files are moved to " +
+                "\nsource|target" +
+                "\n\t-NEW" +
+                "\n\t-PROCESSED" +
+                "\n\t\t-MATCHED" +
+                "\n\t\t-MISMATCHED\nPlease check there.");
         return false;
+    }
+
+    private void moveProcessedFiles(Path absolutePath, String processType, Path absolutePathInP2) throws IOException {
+        Files.move(absolutePath,
+                Paths.get(absolutePath.getParent().getParent() + processType + absolutePath.getFileName()),
+                StandardCopyOption.REPLACE_EXISTING);
+        Files.move(absolutePathInP2,
+                Paths.get(absolutePathInP2.getParent().getParent() + processType + absolutePathInP2.getFileName()),
+                StandardCopyOption.REPLACE_EXISTING);
     }
 
     /**

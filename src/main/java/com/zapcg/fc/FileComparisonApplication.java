@@ -6,19 +6,17 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Slf4j
 @SpringBootApplication
-public class FileComparisionApplication {
+public class FileComparisonApplication {
 
 
-	private static final String SOURCE = "D:\\file-comparision\\dat-files\\tmp_1";
-	private static final String TARGET = "D:\\file-comparision\\dat-files\\tmp_2";
+	private static final String SOURCE = "D:\\file-comparison\\dat-files\\tmp_1";
+	private static final String TARGET = "D:\\file-comparison\\dat-files\\tmp_2";
 
 	public static void main(String[] args) throws IOException {
-		SpringApplication.run(FileComparisionApplication.class, args);
+		SpringApplication.run(FileComparisonApplication.class, args);
 
 		FileOperations fileOperations = new FileOperations(SOURCE, TARGET);
 		log.info("Processing files ...");
