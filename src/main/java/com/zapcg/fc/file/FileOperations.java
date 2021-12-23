@@ -15,11 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+/**
+ *
+ */
 @Slf4j
 @NoArgsConstructor
 public class FileOperations {
 
-    private static final String PATH = "D:\\file-comparision\\dat-files";
     private static final String PROCESSED_MATCHED = "\\PROCESSED\\MATCHED\\";
     private static final String PROCESSED_MISMATCHED = "\\PROCESSED\\MISMATCHED\\";
     private static final String UNPROCESSED = "\\UNPROCESSED\\";
@@ -27,22 +29,22 @@ public class FileOperations {
 
     /**
      * SOURCE
-     * 	- PROCESSED: if file is processed move it to processed directory
-     * 	    - MATCHED:
-     * 	    - MISMATCHED:
-     * 	- UNPROCESSED: initially move all the files to unprocessed directory
-     *  - NEW: whatever isn't available in target move it to NEW
-     *
-     * 	- temp_file_1.dat
-     * 	- temp_file_2.dat
+     * - PROCESSED: if file is processed move it to processed directory
+     * - MATCHED:
+     * - MISMATCHED:
+     * - UNPROCESSED: initially move all the files to unprocessed directory
+     * - NEW: whatever isn't available in target move it to NEW
+     * <p>
+     * - temp_file_1.dat
+     * - temp_file_2.dat
      * TARGET
-     * 	- PROCESSED: if file is processed move it to processed directory
-     * 	    - MATCHED:
-     * 	    - MISMATCHED:
-     * 	- UNPROCESSED: initially move all of the files to unprocessed directory
-     *
-     * 	- temp_file_1.dat
-     * 	- temp_file_2.dat
+     * - PROCESSED: if file is processed move it to processed directory
+     * - MATCHED:
+     * - MISMATCHED:
+     * - UNPROCESSED: initially move all the files to unprocessed directory
+     * <p>
+     * - temp_file_1.dat
+     * - temp_file_2.dat
      *
      * @param src
      * @param target
@@ -52,7 +54,7 @@ public class FileOperations {
         Path target_path = Paths.get(target);
         // source will have directories PROCESSED, UNPROCESSED
         // target will have directories PROCESSED, UNPROCESSED, NEW
-        if (!Files.exists(src_path)|| !Files.exists(target_path)) {
+        if (!Files.exists(src_path) || !Files.exists(target_path)) {
             log.error("Paths isn't valid. Please check the path");
             return;
         }
@@ -65,15 +67,21 @@ public class FileOperations {
         Files.createDirectories(Paths.get(target_path + PROCESSED_MISMATCHED));
     }
 
-    public void processFiles() {
-        try (Stream<Path> paths = Files.walk(Paths.get(PATH))) {
+    /**
+     * Helper to list down all the files, and it's contents
+     * @param sourcePath
+     */
+    public void processFiles(String sourcePath) {
+        try (Stream<Path> paths = Files.walk(Paths.get(sourcePath))) {
 
             paths
                     .filter(Files::isRegularFile)
                     .forEach(path -> {
                         String fileContents = null;
                         try {
-                            fileContents = FileUtils.readFileToString(new File(String.valueOf(path)), StandardCharsets.UTF_8);
+                            fileContents = FileUtils.readFileToString(new File(String.valueOf(path)),
+                                    StandardCharsets.UTF_8);
+                            log.info(">>>>> Contents of file:\n" + fileContents);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -85,9 +93,14 @@ public class FileOperations {
         }
     }
 
+    /**
+     * Checks if contents of source/target are equal
+     * @param source String path
+     * @param target String path
+     * @return true if contents are equal
+     * @throws IOException if path isn't correct
+     */
     public boolean contentEquals(String source, String target) throws IOException {
-        // initially move all the contents source and target to UNPROCESSED
-        // moveToUnprocessed(source, target);
         Path source_path = Paths.get(source);
         Path target_path = Paths.get(target);
         if (!Files.exists(source_path) || !Files.exists(target_path)) {
@@ -104,11 +117,10 @@ public class FileOperations {
 
     /**
      * Compare the contents of two directories
-     *
-     * @param p1
-     * @param p2
-     * @return
-     * @throws IOException
+     * @param p1 String path
+     * @param p2 String path
+     * @return true if contents are equal
+     * @throws IOException if path isn't correct
      */
     private boolean isDirectoryContentEqual(Path p1, Path p2) throws IOException {
 
@@ -155,6 +167,12 @@ public class FileOperations {
         return false;
     }
 
+    /**
+     * @param absolutePath
+     * @param processType
+     * @param absolutePathInP2
+     * @throws IOException if path isn't correct
+     */
     private void moveProcessedFiles(Path absolutePath, String processType, Path absolutePathInP2) throws IOException {
         Files.move(absolutePath,
                 Paths.get(absolutePath.getParent().getParent() + processType + absolutePath.getFileName()),
@@ -166,10 +184,9 @@ public class FileOperations {
 
     /**
      * maps the path relative to base dir
-     *
      * @param p1
      * @param paths_p1
-     * @throws IOException
+     * @throws IOException if path isn't correct
      */
     private void mapPathToBaseDir(Path p1, HashMap<Path, Path> paths_p1) throws IOException {
         Files.walk(p1).filter(Files::isRegularFile).forEach(path -> {
@@ -178,6 +195,12 @@ public class FileOperations {
         });
     }
 
+    /**
+     * Helper to move files from source to target folder
+     * @param source String path
+     * @param target String path
+     * @throws IOException if path isn't correct
+     */
     public void moveToUnprocessed(String source, String target) throws IOException {
         Path src_path = Paths.get(source);
         Path target_path = Paths.get(target);
@@ -192,6 +215,11 @@ public class FileOperations {
         }
     }
 
+    /**
+     * Moves files to the path specified
+     * @param path String path where files need to be moved
+     * @throws IOException if path isn't correct
+     */
     private void moveToDirectory(String path) throws IOException {
         Path unprocessedPath = Paths.get(path);
 
