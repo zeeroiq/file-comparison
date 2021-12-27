@@ -52,8 +52,8 @@ public class FileOperations {
     public FileOperations(String src, String target) throws IOException {
         Path src_path = Paths.get(src);
         Path target_path = Paths.get(target);
-        // source will have directories PROCESSED, UNPROCESSED
-        // target will have directories PROCESSED, UNPROCESSED, NEW
+        // source will have directories PROCESSED, UNPROCESSED, NEW
+        // target will have directories PROCESSED, UNPROCESSED
         if (!Files.exists(src_path) || !Files.exists(target_path)) {
             log.error("Paths isn't valid. Please check the path");
             return;
@@ -69,6 +69,7 @@ public class FileOperations {
 
     /**
      * Helper to list down all the files, and it's contents
+     *
      * @param sourcePath
      */
     public void processFiles(String sourcePath) {
@@ -95,6 +96,7 @@ public class FileOperations {
 
     /**
      * Checks if contents of source/target are equal
+     *
      * @param source String path
      * @param target String path
      * @return true if contents are equal
@@ -117,6 +119,7 @@ public class FileOperations {
 
     /**
      * Compare the contents of two directories
+     *
      * @param p1 String path
      * @param p2 String path
      * @return true if contents are equal
@@ -135,28 +138,35 @@ public class FileOperations {
             mapPathToBaseDir(p1, paths_p1);
             mapPathToBaseDir(p2, paths_p2);
 
-
-            // now for each file in p1 check if also available in p2
-            for (Map.Entry<Path, Path> pathEntry : paths_p1.entrySet()) {
+            // using parallel stream to process the files
+            paths_p1.entrySet().stream().parallel().forEach(pathEntry -> {
                 Path relativePath = pathEntry.getKey();
                 Path absolutePath = pathEntry.getValue();
                 boolean isP2ContainsKey = paths_p2.containsKey(relativePath);
                 Path absolutePathInP2 = paths_p2.get(relativePath);
                 if (!isP2ContainsKey) {
-                    Files.move(absolutePath,
-                            Paths.get(absolutePath.getParent().getParent() + NEW + absolutePath.getFileName()),
-                            StandardCopyOption.REPLACE_EXISTING);
+                    try {
+                        Files.move(absolutePath,
+                                Paths.get(absolutePath.getParent().getParent() + NEW + absolutePath.getFileName()),
+                                StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     log.info(String.format(">>>> Target folder doesn't have :  %s", relativePath.getFileName()));
                 } else {
-                    if (!contentEquals(absolutePath.toString(), absolutePathInP2.toString())) {
-                        moveProcessedFiles(absolutePath, PROCESSED_MISMATCHED, absolutePathInP2);
-                        log.info(String.format(">>>> Contents are not equal for \n%s\n%s", absolutePath, paths_p2.get(relativePath)));
-                    } else {
-                        moveProcessedFiles(absolutePath, PROCESSED_MATCHED, absolutePathInP2);
-                        log.info(String.format(">>>> Contents matched for \n%s\n%s", absolutePath, paths_p2.get(relativePath)));
+                    try {
+                        if (!contentEquals(absolutePath.toString(), absolutePathInP2.toString())) {
+                            moveProcessedFiles(absolutePath, PROCESSED_MISMATCHED, absolutePathInP2);
+                            log.info(String.format(">>>> Contents are not equal for \n%s\n%s", absolutePath, paths_p2.get(relativePath)));
+                        } else {
+                            moveProcessedFiles(absolutePath, PROCESSED_MATCHED, absolutePathInP2);
+                            log.info(String.format(">>>> Contents matched for \n%s\n%s", absolutePath, paths_p2.get(relativePath)));
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
-            }
+            });
         }
         log.info("\nAll files are moved to " +
                 "\nsource|target" +
@@ -184,6 +194,7 @@ public class FileOperations {
 
     /**
      * maps the path relative to base dir
+     *
      * @param p1
      * @param paths_p1
      * @throws IOException if path isn't correct
@@ -197,6 +208,7 @@ public class FileOperations {
 
     /**
      * Helper to move files from source to target folder
+     *
      * @param source String path
      * @param target String path
      * @throws IOException if path isn't correct
@@ -217,6 +229,7 @@ public class FileOperations {
 
     /**
      * Moves files to the path specified
+     *
      * @param path String path where files need to be moved
      * @throws IOException if path isn't correct
      */
